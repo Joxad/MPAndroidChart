@@ -5,6 +5,8 @@ import android.os.Parcel;
 import android.os.ParcelFormatException;
 import android.os.Parcelable;
 
+import com.github.mikephil.charting.charts.Chart;
+
 /**
  * Class representing one entry in the chart. Might contain multiple values.
  * Might only contain a single value depending on the used constructor.
@@ -18,6 +20,8 @@ public class Entry implements Parcelable {
 
     /** the index on the x-axis */
     private int mXIndex = 0;
+
+    private ChartAlert chartAlert = null;
 
     /** optional spot for additional data this Entry represents */
     private Object mData = null;
@@ -51,7 +55,21 @@ public class Entry implements Parcelable {
 
         this.mData = data;
     }
-
+    /**
+     * A Entry represents one single entry in the chart.
+     *
+     * @param val the y value (the actual value of the entry)
+     * @param xIndex the corresponding index in the x value array (index on the
+     *            x-axis of the chart, must NOT be higher than the length of the
+     *            x-values String array)
+     * @param chartAlert Spot for additional data this Entry represents.
+     * @param data Spot for additional data this Entry represents.
+     */
+    public Entry(float val, int xIndex, ChartAlert chartAlert, Object data) {
+        this(val, xIndex);
+        this.chartAlert = chartAlert;
+        this.mData = data;
+    }
     /**
      * returns the x-index the value of this object is mapped to
      * 
@@ -113,7 +131,7 @@ public class Entry implements Parcelable {
      * @return
      */
     public Entry copy() {
-        Entry e = new Entry(mVal, mXIndex, mData);
+        Entry e = new Entry(mVal, mXIndex, chartAlert, mData);
         return e;
     }
 
@@ -130,6 +148,8 @@ public class Entry implements Parcelable {
         if (e == null)
             return false;
 
+        if (e.chartAlert != this.chartAlert)
+            return false;
         if (e.mData != this.mData)
             return false;
         if (e.mXIndex != this.mXIndex)
@@ -168,6 +188,16 @@ public class Entry implements Parcelable {
         } else {
             dest.writeInt(0);
         }
+        if (chartAlert != null) {
+            if (chartAlert instanceof Parcelable) {
+                dest.writeInt(1);
+                dest.writeParcelable((Parcelable) this.chartAlert, flags);
+            } else {
+                throw new ParcelFormatException("Cannot parcel an Entry with non-parcelable data");
+            }
+        } else {
+            dest.writeInt(0);
+        }
     }
 
     protected Entry(Parcel in) {
@@ -175,6 +205,9 @@ public class Entry implements Parcelable {
         this.mXIndex = in.readInt();
         if (in.readInt() == 1) {
             this.mData = in.readParcelable(Object.class.getClassLoader());
+        }
+        if (in.readInt() == 1) {
+            this.chartAlert = in.readParcelable(Object.class.getClassLoader());
         }
     }
 
@@ -188,4 +221,12 @@ public class Entry implements Parcelable {
         }
     };
 
+
+    public void setChartAlert(ChartAlert chartAlert) {
+        this.chartAlert = chartAlert;
+    }
+
+    public ChartAlert getChartAlert() {
+        return chartAlert;
+    }
 }

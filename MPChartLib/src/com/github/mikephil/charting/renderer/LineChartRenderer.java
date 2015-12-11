@@ -13,6 +13,7 @@ import com.github.mikephil.charting.animation.ChartAnimator;
 import com.github.mikephil.charting.buffer.CircleBuffer;
 import com.github.mikephil.charting.buffer.LineBuffer;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.GraphView;
 import com.github.mikephil.charting.components.MarkerView;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
@@ -516,13 +517,29 @@ public class LineChartRenderer extends LineScatterCandleRadarRenderer {
 
                 Entry entry = entries.get(j / 2 + minx);
                 if (entry.getData() != null) {
+
+                    if (entry.getData() instanceof GraphView) {
+                        GraphView graphView = (GraphView) entry.getData();
+                        if (graphView != null) {
+
+                            graphView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                            graphView.layout(0, 0, graphView.getMeasuredWidth(),
+                                    graphView.getMeasuredHeight());
+                            int halfWidth = (int) (graphView.getMeasuredWidth() *0.5f);
+                            int halfHeight = (int) (graphView.getMeasuredHeight() *0.5f);
+
+                            graphView.draw(c, x, y);
+
+                        }
+                    }
                     if (entry.getData() instanceof Bitmap) {
                         Bitmap b = (Bitmap) entry.getData();
                         if (b != null) {
                             int halfWidth = (int) (b.getWidth() * 0.5f);
                             int halfHeight = (int) (b.getHeight() * 0.5f);
                             Rect dstRectForRender = new Rect((int) (x - halfWidth), (int) (y - halfHeight), (int) (x + halfWidth), (int) (y + halfHeight));
-                            dstRectForRender.offset(0, - halfHeight);
+                            dstRectForRender.offset(0, -halfHeight);
                             c.drawBitmap(b, null, dstRectForRender, null);
                         }
                     }
